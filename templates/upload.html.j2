@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>RevolutTaxFr — Générer votre rapport fiscal</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      background: #f5f5f5;
+    }
+    .container {
+      display: flex;
+      width: 100%;
+      max-width: 860px;
+      margin: auto;
+      min-height: 480px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,.12);
+    }
+
+    /* ── Left info panel ── */
+    .info-panel {
+      flex: 0 0 260px;
+      background: #1a1a2e;
+      color: #e0e0ff;
+      padding: 2rem 1.6rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .info-panel .logo {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 0.3rem;
+    }
+    .info-panel .logo span { color: #4fc3f7; }
+    .info-panel .tagline {
+      font-size: 0.8rem;
+      color: #90caf9;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .info-panel .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #90caf9;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+    .info-card {
+      background: rgba(255,255,255,.08);
+      border-radius: 8px;
+      padding: 0.65rem 0.8rem;
+      margin-bottom: 0.5rem;
+    }
+    .info-card .code { font-weight: 700; font-size: 0.85rem; color: #fff; }
+    .info-card .desc { font-size: 0.75rem; color: #90caf9; margin-top: 2px; }
+    .info-panel .footer {
+      margin-top: auto;
+      font-size: 0.72rem;
+      color: #546e7a;
+      line-height: 1.6;
+      border-top: 1px solid rgba(255,255,255,.1);
+      padding-top: 1rem;
+    }
+
+    /* ── Right form panel ── */
+    .form-panel {
+      flex: 1;
+      background: #fff;
+      padding: 2rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .form-panel h1 { font-size: 1.05rem; font-weight: 700; color: #222; margin-bottom: 0.3rem; }
+    .form-panel .subtitle { font-size: 0.8rem; color: #888; margin-bottom: 1.4rem; line-height: 1.5; }
+
+    .field-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .badge-required { color: #e53935; }
+    .badge-optional {
+      background: #e8f5e9;
+      color: #2e7d32;
+      border-radius: 10px;
+      padding: 1px 7px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .drop-zone {
+      border: 2px dashed #90caf9;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      background: #f8fbff;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      margin-bottom: 0.3rem;
+      position: relative;
+    }
+    .drop-zone.optional { border-color: #ddd; background: #fafafa; }
+    .drop-zone:hover { border-color: #1a73e8; background: #f0f4ff; }
+    .drop-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .drop-zone .icon { font-size: 1.4rem; margin-bottom: 0.2rem; }
+    .drop-zone .label { font-size: 0.8rem; font-weight: 600; color: #1a73e8; }
+    .drop-zone.optional .label { color: #555; }
+    .drop-zone .hint { font-size: 0.72rem; color: #aaa; margin-top: 2px; }
+    .drop-zone .filename { font-size: 0.75rem; color: #2e7d32; margin-top: 4px; font-weight: 600; display: none; }
+
+    .field-hint { font-size: 0.72rem; color: #aaa; margin-bottom: 1rem; }
+
+    .year-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      margin-bottom: 1.4rem;
+    }
+    .year-row label { font-size: 0.78rem; font-weight: 600; color: #444; white-space: nowrap; }
+    .year-row input[type="number"] {
+      width: 90px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.88rem;
+      color: #333;
+    }
+    .year-row .year-hint { font-size: 0.72rem; color: #aaa; }
+
+    .submit-btn {
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      transition: background .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .submit-btn:hover { background: #1557b0; }
+    .submit-btn:disabled { background: #90caf9; cursor: not-allowed; }
+    .spinner {
+      display: none;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Error banner */
+    .error-banner {
+      background: #ffebee;
+      border-left: 4px solid #e53935;
+      color: #b71c1c;
+      padding: 0.7rem 1rem;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Left: info panel -->
+  <div class="info-panel">
+    <div class="logo">RevolutTax<span>Fr</span></div>
+    <div class="tagline">Déclaration impôts France<br>depuis vos exports Revolut</div>
+
+    <div class="section-label">Ce que vous obtiendrez</div>
+    <div class="info-card">
+      <div class="code">Cases 2DC &amp; 2AB</div>
+      <div class="desc">Dividendes bruts + crédit d'impôt étranger</div>
+    </div>
+    <div class="info-card">
+      <div class="code">Cases 3VG &amp; 3VH</div>
+      <div class="desc">Plus-values / moins-values + report déficitaire</div>
+    </div>
+    <div class="info-card">
+      <div class="code">Formulaire 2074</div>
+      <div class="desc">Détail des cessions (méthode FIFO / PEPS)</div>
+    </div>
+
+    <div class="footer">
+      Méthode FIFO · PFU 30% · Convention France-US
+    </div>
+  </div>
+
+  <!-- Right: upload form -->
+  <div class="form-panel">
+    <h1>Générer votre rapport fiscal</h1>
+    <p class="subtitle">
+      Tous les calculs sont effectués localement —<br>
+      aucune donnée n'est envoyée sur internet.
+    </p>
+
+    {% if error %}
+    <div class="error-banner">{{ error | e }}</div>
+    {% endif %}
+
+    <form method="POST" action="/compute" enctype="multipart/form-data"
+          onsubmit="showSpinner(this)">
+
+      <!-- Activity CSV -->
+      <div class="field-label">
+        Relevé d'activité <span class="badge-required">*</span>
+      </div>
+      <div class="drop-zone" id="zone-activity">
+        <input type="file" name="activity" accept=".csv" required
+               onchange="showFilename(this, 'fn-activity')">
+        <div class="icon">📄</div>
+        <div class="label">Choisir le fichier CSV</div>
+        <div class="hint">ou glisser-déposer</div>
+        <div class="filename" id="fn-activity"></div>
+      </div>
+      <div class="field-hint">Investir → Portefeuille → ⋯ → Exporter</div>
+
+      <!-- Tax doc CSV -->
+      <div class="field-label">
+        Document fiscal annuel
+        <span class="badge-optional">optionnel</span>
+      </div>
+      <div class="drop-zone optional" id="zone-taxdoc">
+        <input type="file" name="tax_doc" accept=".csv"
+               onchange="showFilename(this, 'fn-taxdoc')">
+        <div class="icon">📋</div>
+        <div class="label">Choisir le fichier CSV</div>
+        <div class="hint">ou glisser-déposer</div>
+        <div class="filename" id="fn-taxdoc"></div>
+      </div>
+      <div class="field-hint">Investir → Portefeuille → ⋯ → Documents fiscaux · Recommandé pour une précision maximale</div>
+
+      <!-- Year -->
+      <div class="year-row">
+        <label for="year-input">Année fiscale</label>
+        <input type="number" id="year-input" name="year"
+               value="{{ year }}" min="2015" max="2099">
+        <span class="year-hint">(année précédente par défaut)</span>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" class="submit-btn" id="submit-btn">
+        <span class="spinner" id="spinner"></span>
+        <span id="btn-text">Générer le rapport →</span>
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<script>
+function showFilename(input, id) {
+  var el = document.getElementById(id);
+  if (input.files && input.files[0]) {
+    el.textContent = input.files[0].name;
+    el.style.display = 'block';
+  }
+}
+function showSpinner(form) {
+  var btn = document.getElementById('submit-btn');
+  var spinner = document.getElementById('spinner');
+  var text = document.getElementById('btn-text');
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  text.textContent = 'Calcul en cours…';
+}
+</script>
+</body>
+</html>
