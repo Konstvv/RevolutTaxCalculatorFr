@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import argparse
 import logging
 import tempfile
 from datetime import date
@@ -87,16 +86,9 @@ async def compute(
             )
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        prog="revolut-tax-web",
-        description="Serveur web pour générer le rapport fiscal Revolut.",
-    )
-    parser.add_argument("--host", default="0.0.0.0")
-    parser.add_argument("--port", type=int, default=8080)
-    args = parser.parse_args()
-    uvicorn.run(app, host=args.host, port=args.port)
+def serve(host: str = "0.0.0.0", port: int = 8080) -> None:
+    uvicorn.run(app, host=host, port=port)
 
 
 if __name__ == "__main__":
-    main()
+    serve()
