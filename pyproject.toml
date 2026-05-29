@@ -7,10 +7,14 @@ dependencies = [
     "polars>=1.0.0",
     "jinja2>=3.1.0",
     "yfinance>=0.2",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "python-multipart>=0.0.9",
 ]
 
 [project.scripts]
-revolut-tax = "revolut_tax_fr.main:main"
+revolut-tax     = "revolut_tax_fr.main:main"
+revolut-tax-web = "revolut_tax_fr.web:main"
 
 [dependency-groups]
 dev = [
@@ -18,6 +22,7 @@ dev = [
     "pre-commit>=4.0",
     "ruff>=0.9",
     "mypy>=1.10",
+    "httpx>=0.27",
 ]
 
 [build-system]
@@ -27,36 +32,16 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["revolut_tax_fr"]
 
-# ---------------------------------------------------------------------------
-# Ruff
-# ---------------------------------------------------------------------------
-
 [tool.ruff]
 line-length = 100
 target-version = "py312"
 
 [tool.ruff.lint]
-select = [
-    "E",    # pycodestyle errors
-    "W",    # pycodestyle warnings
-    "F",    # pyflakes
-    "I",    # isort
-    "UP",   # pyupgrade
-    "B",    # flake8-bugbear
-    "SIM",  # flake8-simplify
-    "C4",   # flake8-comprehensions
-    "RUF",  # ruff-specific rules
-]
-ignore = [
-    "E501",   # line length enforced by formatter instead
-]
+select = ["E", "W", "F", "I", "UP", "B", "SIM", "C4", "RUF"]
+ignore = ["E501"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["revolut_tax_fr"]
-
-# ---------------------------------------------------------------------------
-# Mypy
-# ---------------------------------------------------------------------------
 
 [tool.mypy]
 python_version = "3.12"
@@ -64,10 +49,6 @@ strict = false
 ignore_missing_imports = true
 warn_return_any = true
 warn_unused_ignores = true
-
-# ---------------------------------------------------------------------------
-# Pytest
-# ---------------------------------------------------------------------------
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
