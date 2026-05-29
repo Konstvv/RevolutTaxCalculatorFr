@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Déclaration fiscale Revolut {{ report.year }}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+      padding: 2rem;
+      max-width: 960px;
+      margin: auto;
+    }
+    h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+    h2 { font-size: 1.1rem; margin: 1.8rem 0 0.6rem; color: #444; border-bottom: 2px solid #ddd; padding-bottom: 4px; }
+    .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
+
+    /* Summary cards */
+    .cards { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1.2rem 1.5rem;
+      flex: 1 1 200px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .card .code { font-size: 0.75rem; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: .05em; }
+    .card .amount { font-size: 1.8rem; font-weight: 700; margin: 0.3rem 0; color: #1a73e8; }
+    .card.loss .amount { color: #d32f2f; }
+    .card .label { font-size: 0.82rem; color: #555; }
+    .card .note { font-size: 0.75rem; color: #888; margin-top: 0.5rem; line-height: 1.4; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    th { background: #f0f4ff; padding: 0.6rem 0.8rem; text-align: left; font-size: 0.8rem; color: #555; text-transform: uppercase; letter-spacing: .04em; }
+    td { padding: 0.55rem 0.8rem; font-size: 0.88rem; border-top: 1px solid #f0f0f0; }
+    tr:hover td { background: #fafbff; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .gain  { color: #2e7d32; font-weight: 600; }
+    .loss  { color: #c62828; font-weight: 600; }
+    tfoot td { font-weight: 700; border-top: 2px solid #ddd; background: #f9f9f9; }
+
+    /* Instructions */
+    .instructions { background: #fff; border-radius: 8px; padding: 1.2rem 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    .instructions ol { padding-left: 1.2rem; }
+    .instructions li { margin: 0.5rem 0; font-size: 0.9rem; line-height: 1.5; }
+    .box-code { display: inline-block; background: #e8f0fe; color: #1a73e8; font-weight: 700; border-radius: 4px; padding: 1px 6px; font-size: 0.85rem; font-family: monospace; }
+
+    footer { margin-top: 3rem; font-size: 0.75rem; color: #aaa; }
+  </style>
+</head>
+<body>
+{% if show_back_button %}
+<div style="background:#f0f4ff;border-bottom:1px solid #c5d3f0;padding:0.55rem 2rem;font-size:0.85rem">
+  <a href="/" style="color:#1a73e8;text-decoration:none;font-weight:600">← Nouveau rapport</a>
+</div>
+{% endif %}
+
+<h1>Déclaration fiscale Revolut — Année {{ report.year }}</h1>
+<p class="subtitle">Généré automatiquement à partir de vos relevés Revolut.</p>
+
+<h2>Résumé — Cases à remplir</h2>
+<div class="cards">
+  {% for f in fields %}
+  <div class="card{% if f.code in ('3VH',) and f.value > 0 %} loss{% endif %}">
+    <div class="code">Case {{ f.code }}</div>
+    <div class="amount">€{{ f.value | eur }}</div>
+    <div class="label">{{ f.label_fr }}</div>
+    <div class="note">{{ f.note }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<h2>Comment remplir votre déclaration</h2>
+<div class="instructions">
+  <ol>
+    <li>
+      Ouvrez votre formulaire <strong>2042</strong>.
+      Rubrique 2 « Revenus des valeurs mobilières » :
+      <br>→ <span class="box-code">2DC</span> saisir <strong>€{{ report.box_2dc | eur }}</strong>
+      (dividendes bruts reçus)
+      <br>→ <span class="box-code">2AB</span> saisir <strong>€{{ report.box_2ab | eur }}</strong>
+      (retenue à la source étrangère — crédit d'impôt)
+    </li>
+    {% if report.box_3vg > 0 %}
+    <li>
+      Rubrique 3 « Plus-values » :
+      <span class="box-code">3VG</span> saisir <strong>€{{ report.box_3vg | eur }}</strong>.
+    </li>
+    {% endif %}
+    {% if report.box_3vh > 0 %}
+    <li>
+      Moins-values de l'année :
+      <span class="box-code">3VH</span> saisir <strong>€{{ report.box_3vh | eur }}</strong>
+      (reportable sur 10 ans).
+    </li>
+    {% endif %}
+    {% if report.carry_forward_used %}
+    <li>
+      Des pertes antérieures ont été imputées sur ce gain
+      (voir tableau « Report déficitaire » ci-dessous).
+      {% if report.box_3vg == 0 %}
+      Le gain est <strong>entièrement absorbé</strong> — case <span class="box-code">3VG</span> = €0,00.
+      {% endif %}
+    </li>
+    {% endif %}
+    {% if report.capital_gains %}
+    <li>
+      Joindre le <strong>formulaire 2074</strong> avec le détail des cessions
+      (voir tableau ci-dessous).
+    </li>
+    {% endif %}
+  </ol>
+</div>
+
+{% if report.carry_forward_used or report.carry_forward_remaining %}
+<h2>Report déficitaire (moins-values des années antérieures)</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Origine</th>
+      <th class="num">Montant initial (€)</th>
+      <th>Statut</th>
+      <th>Expire après</th>
+    </tr>
+  </thead>
+  <thead>
+    <tr>
+      <th>Origine (3VH déclaré)</th>
+      <th class="num">Total disponible (€)</th>
+      <th class="num">Imputé sur {{ report.year }} (€)</th>
+      <th class="num">Restant (€)</th>
+      <th>Expire après</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% set used_by_year = {} %}
+    {% for cf in report.carry_forward_used %}
+      {% if cf.origin_year in used_by_year %}
+        {% set _ = used_by_year.update({cf.origin_year: used_by_year[cf.origin_year] + cf.amount_eur}) %}
+      {% else %}
+        {% set _ = used_by_year.update({cf.origin_year: cf.amount_eur}) %}
+      {% endif %}
+    {% endfor %}
+    {% set rem_by_year = {} %}
+    {% for cf in report.carry_forward_remaining %}
+      {% if cf.origin_year in rem_by_year %}
+        {% set _ = rem_by_year.update({cf.origin_year: rem_by_year[cf.origin_year] + cf.amount_eur}) %}
+      {% else %}
+        {% set _ = rem_by_year.update({cf.origin_year: cf.amount_eur}) %}
+      {% endif %}
+    {% endfor %}
+    {% set all_years = (used_by_year.keys() | list + rem_by_year.keys() | list) | unique | sort %}
+    {% for yr in all_years %}
+      {% set used_amt = used_by_year.get(yr, 0) %}
+      {% set rem_amt  = rem_by_year.get(yr, 0) %}
+      {% set total    = used_amt + rem_amt %}
+    <tr>
+      <td>Pertes {{ yr }}</td>
+      <td class="num">{{ total | eur }}</td>
+      <td class="num {% if used_amt > 0 %}loss{% endif %}">
+        {{ used_amt | eur }}{% if used_amt > 0 and rem_amt < 0.01 %} <small>(totalité)</small>{% endif %}
+      </td>
+      <td class="num">{{ rem_amt | eur }}</td>
+      <td>{% if rem_amt > 0 %}{{ yr + 10 }}{% else %}—{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td>Total</td>
+      <td class="num">
+        €{{ ((report.carry_forward_used | sum(attribute='amount_eur')) + (report.carry_forward_remaining | sum(attribute='amount_eur'))) | eur }}
+      </td>
+      <td class="num loss">€{{ report.carry_forward_used | sum(attribute='amount_eur') | eur }}</td>
+      <td class="num">€{{ report.carry_forward_remaining | sum(attribute='amount_eur') | eur }}</td>
+      <td>—</td>
+    </tr>
+  </tfoot>
+</table>
+
+<div class="warning-box" style="margin-top:1rem; padding:1rem 1.2rem; background:#fff8e1; border-left:4px solid #f9a825; border-radius:4px; font-size:0.88rem; line-height:1.6;">
+  <strong>⚠️ Vérification requise avant dépôt</strong><br>
+  Ces moins-values reportées sont calculées automatiquement depuis votre historique Revolut.
+  Elles ne sont <strong>imputables que si vous les avez bien déclarées en case 3VH</strong>
+  dans vos déclarations des années correspondantes
+  ({% for loss in report.carry_forward_used %}{{ loss.origin_year }}{% if not loop.last %}, {% endif %}{% endfor %}
+  {% if report.carry_forward_remaining %}{% if report.carry_forward_used %}, {% endif %}
+  {% for loss in report.carry_forward_remaining %}{{ loss.origin_year }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}).
+  <ul style="margin:0.5rem 0 0 1.2rem;">
+    <li>Si vous n'avez pas encore déposé ces années-là, déposez-les d'abord.</li>
+    <li>Si vous avez déjà utilisé tout ou partie de ces pertes contre des gains d'une autre année, ajustez les montants.</li>
+    <li>Les pertes provenant d'autres courtiers que Revolut <strong>ne sont pas incluses</strong> dans ce calcul.</li>
+  </ul>
+</div>
+{% endif %}
+
+{% if report.capital_gains %}
+<h2>Formulaire 2074 — Détail des cessions</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Valeur</th>
+      <th>ISIN</th>
+      <th>Pays</th>
+      <th>Date acq.</th>
+      <th>Date cession</th>
+      <th class="num">Qté</th>
+      <th class="num">Prix revient (€)</th>
+      <th class="num">Produit (€)</th>
+      <th class="num">Gain / Perte (€)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for g in report.capital_gains %}
+    <tr>
+      <td>{{ g.security_name or g.ticker }}</td>
+      <td>{{ g.isin or '—' }}</td>
+      <td>{{ g.country or '—' }}</td>
+      <td>{{ g.date_acquired }}</td>
+      <td>{{ g.date_sold }}</td>
+      <td class="num">{{ g.quantity | round(6) | string | replace('.000000', '') }}</td>
+      <td class="num">{{ g.cost_basis_eur | eur }}</td>
+      <td class="num">{{ g.proceeds_eur | eur }}</td>
+      <td class="num {% if g.gain_eur >= 0 %}gain{% else %}loss{% endif %}">
+        {{ g.gain_eur | eur }}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="6">Total</td>
+      <td class="num">{{ report.capital_gains | sum(attribute='cost_basis_eur') | eur }}</td>
+      <td class="num">{{ report.capital_gains | sum(attribute='proceeds_eur') | eur }}</td>
+      <td class="num">{{ report.capital_gains | sum(attribute='gain_eur') | eur }}</td>
+    </tr>
+  </tfoot>
+</table>
+{% endif %}
+
+<h2>Dividendes reçus</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Valeur</th>
+      <th>ISIN</th>
+      <th>Pays</th>
+      <th class="num">Brut (€)</th>
+      <th class="num">Retenue (€)</th>
+      <th class="num">Net (€)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for d in report.dividends %}
+    <tr>
+      <td>{{ d.date }}</td>
+      <td>{{ d.security_name or d.ticker }}</td>
+      <td>{{ d.isin or '—' }}</td>
+      <td>{{ d.country or '—' }}</td>
+      <td class="num">{{ d.gross_eur | eur }}</td>
+      <td class="num">{{ d.withholding_eur | eur }}</td>
+      <td class="num">{{ d.net_eur | eur }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4">Total</td>
+      <td class="num">{{ report.dividends | sum(attribute='gross_eur') | eur }}</td>
+      <td class="num">{{ report.dividends | sum(attribute='withholding_eur') | eur }}</td>
+      <td class="num">{{ report.dividends | sum(attribute='net_eur') | eur }}</td>
+    </tr>
+  </tfoot>
+</table>
+
+<footer>
+  <p>Méthodologie : coût de revient calculé selon la méthode FIFO (PEPS, Premier Entré Premier Sorti), conforme à l'article 150-0 A du CGI.
+  Conversion USD→EUR au taux de change fourni par Revolut pour chaque transaction.
+  Dividendes bruts = montants nets reçus reconstitués via les taux de retenue conventionnels
+  (France-États-Unis : 15 %, France-Taïwan : 20 %, Irlande : 0 %).
+  Lorsque le document fiscal annuel Revolut est fourni, ses montants sont utilisés directement.</p>
+  <p style="margin-top:0.5rem">⚠️ Ce rapport est fourni à titre indicatif. Vérifiez les montants avec votre conseiller fiscal avant soumission.</p>
+</footer>
+</body>
+</html>
