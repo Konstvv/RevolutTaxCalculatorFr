@@ -9,4 +9,5 @@ RUN uv sync --no-dev
 COPY revolut_tax_fr/ revolut_tax_fr/
 COPY templates/ templates/
 
-ENTRYPOINT ["uv", "run", "revolut-tax"]
+EXPOSE 8080
+ENTRYPOINT ["uv", "run", "revolut-tax-web"]

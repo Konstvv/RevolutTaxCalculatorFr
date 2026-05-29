@@ -66,10 +66,16 @@ Le résumé s'affiche dans le terminal et un rapport HTML détaillé est enregis
 ## Docker
 
 ```bash
+# Mode web (défaut)
 docker build -t revolut-tax-fr .
+docker run -p 8080:8080 revolut-tax-fr
+# Puis ouvrez http://localhost:8080 dans votre navigateur
+
+# Mode CLI (override de l'entrypoint)
 docker run --rm \
   -v "$(pwd)/data":/data \
   revolut-tax-fr \
+  uv run revolut-tax \
   --activity /data/activity.csv \
   --year 2025 \
   --output /data/report.html
@@ -155,10 +161,16 @@ A summary is printed to the terminal and a detailed HTML report is saved.
 ## Docker
 
 ```bash
+# Web mode (default)
 docker build -t revolut-tax-fr .
+docker run -p 8080:8080 revolut-tax-fr
+# Then open http://localhost:8080 in your browser
+
+# CLI mode (entrypoint override)
 docker run --rm \
   -v "$(pwd)/data":/data \
   revolut-tax-fr \
+  uv run revolut-tax \
   --activity /data/activity.csv \
   --year 2025 \
   --output /data/report.html
