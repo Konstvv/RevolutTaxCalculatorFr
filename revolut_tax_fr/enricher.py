@@ -71,22 +71,12 @@ class SecurityCache:
     def __init__(self, path: Path | None = _DEFAULT_CACHE_PATH) -> None:
         self._path = path
         self._data: dict[str, SecurityInfo] = {}
-        self._seed_from_config()
         if path is not None:
-            self._load()  # disk entries override config seeds
+            self._load()
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
-
-    def _seed_from_config(self) -> None:
-        """Bootstrap with KNOWN_SECURITIES so common tickers work without a tax doc."""
-        from .config import KNOWN_SECURITIES
-
-        for ticker, (name, isin, country) in KNOWN_SECURITIES.items():
-            self._data[ticker] = SecurityInfo(
-                ticker=ticker, name=name, isin=isin, country=country, source="config"
-            )
 
     def _load(self) -> None:
         if not self._path or not self._path.exists():

@@ -23,21 +23,6 @@ WITHHOLDING_RATES_BY_COUNTRY: dict[str, float] = {
     "CA": 0.15,  # Canada — France-Canada treaty
 }
 
-# Known securities: ticker → (display name, ISIN, domicile country code).
-# Used when the Revolut annual tax document is unavailable (fallback for earlier years).
-KNOWN_SECURITIES: dict[str, tuple[str, str | None, str | None]] = {
-    "AAPL": ("Apple Inc.", "US0378331005", "US"),
-    "GOOGL": ("Alphabet Inc. (Class A)", "US02079K3059", "US"),
-    "KO": ("Coca-Cola Co.", "US1912161007", "US"),
-    "O": ("Realty Income Corp.", "US7561091049", "US"),
-    "TSM": ("Taiwan Semiconductor Mfg Co.", "US8740391003", "US"),
-    "HSBC": ("HSBC Holdings plc", "US4042804066", "GB"),  # UK company, US-listed ADR
-    "NVDA": ("NVIDIA Corp.", "US67066G1040", "US"),
-    "VUSA": ("Vanguard S&P 500 UCITS ETF", "IE00B3XXRP09", "IE"),
-    "IQQQ": ("Invesco EQQQ Nasdaq-100 ETF", None, "IE"),
-    "BABA": ("Alibaba Group Holding", "US01609W1027", "US"),
-}
-
 
 def withholding_rate(isin: str | None, country: str | None) -> float:
     if isin and isin in WITHHOLDING_RATES_BY_ISIN:
