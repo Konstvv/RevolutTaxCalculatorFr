@@ -10,11 +10,13 @@ dependencies = [
     "fastapi>=0.110",
     "uvicorn[standard]>=0.29",
     "python-multipart>=0.0.9",
+    "typer>=0.12",
+    "rich>=13.0",
 ]
 
 [project.scripts]
-revolut-tax     = "revolut_tax_fr.main:main"
-revolut-tax-web = "revolut_tax_fr.web:main"
+revolut-tax     = "revolut_tax_fr.cli:compute_app"
+revolut-tax-web = "revolut_tax_fr.cli:serve_app"
 
 [dependency-groups]
 dev = [
