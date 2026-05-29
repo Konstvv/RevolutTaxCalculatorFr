@@ -55,17 +55,17 @@ class SecurityInfo:
 
 
 class SecurityCache:
-    """Two-layer security metadata cache.
+    """Security metadata cache backed by the Revolut annual tax document and yfinance.
 
-    Layer 1 (in-memory, always): seeded from KNOWN_SECURITIES in config so the
-    tool works out of the box for common stocks without any network calls.
-
-    Layer 2 (on disk, ~/.revolut_tax_fr/securities.json): enriched entries from
-    the Revolut annual tax document (highest trust) and Yahoo Finance lookups
+    Layer 1 (on disk, ~/.revolut_tax_fr/securities.json): populated from the
+    Revolut annual tax document (highest trust) and Yahoo Finance lookups
     (network fallback). Disk entries survive across runs so yfinance is only
     queried once per unknown ticker.
 
-    Priority: tax_doc > yfinance > config > fallback.
+    A fresh cache starts empty. Run with a tax document to populate it; for
+    older years without a tax doc, yfinance fills the gaps on first use.
+
+    Priority: tax_doc > yfinance > fallback.
     """
 
     def __init__(self, path: Path | None = _DEFAULT_CACHE_PATH) -> None:
