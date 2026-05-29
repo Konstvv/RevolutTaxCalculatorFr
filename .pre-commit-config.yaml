@@ -1,0 +1,41 @@
+repos:
+  # ---------------------------------------------------------------------------
+  # Standard file hygiene
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: check-ast          # validates Python syntax before anything else
+      - id: debug-statements   # no leftover breakpoint() / pdb.set_trace()
+      - id: detect-private-key # prevent accidental credential commits
+
+  # ---------------------------------------------------------------------------
+  # Ruff — linting + formatting (replaces flake8, isort, black)
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.10
+    hooks:
+      - id: ruff             # lint, auto-fix safe issues
+        args: [--fix]
+      - id: ruff-format      # opinionated formatter
+
+  # ---------------------------------------------------------------------------
+  # Mypy — static type checking
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.15.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - polars>=1.0.0
+          - jinja2>=3.1.0
+        args: [--ignore-missing-imports]

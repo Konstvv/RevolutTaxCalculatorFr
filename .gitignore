@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+*.egg-info/
+dist/
+build/
+
+# uv
+uv.lock
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Generated reports — keep out of version control (contain financial data)
+tax_report_*.html
+
+# macOS
+.DS_Store
+
+test_data/
