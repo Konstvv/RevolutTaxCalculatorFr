@@ -100,5 +100,6 @@ def serve(
 ) -> None:
     """Lance le serveur web pour générer le rapport fiscal Revolut."""
     console = _console()
-    console.print(f"[bold]Serveur démarré sur[/bold] http://{host}:{port}")
+    display_host = "localhost" if host == "0.0.0.0" else host
+    console.print(f"[bold]Serveur démarré sur[/bold] http://{display_host}:{port}")
     _serve(host=host, port=port)
