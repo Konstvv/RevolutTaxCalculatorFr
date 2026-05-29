@@ -22,7 +22,7 @@ def _make_report():
     from revolut_tax_fr.calculator import TaxReport
     from revolut_tax_fr.forms import build_form_2042
 
-    report = TaxReport(year=2025, box_2dc=34.64, box_2ab=2.69, box_3vg=0.0, box_3vh=0.0)
+    report = TaxReport(year=2025, box_2dc=50.00, box_2ab=3.00, box_3vg=0.0, box_3vh=0.0)
     fields = build_form_2042(report)
     return report, fields
 
@@ -34,7 +34,7 @@ def test_render_html_returns_string():
     html = render_html(report, fields)
     assert isinstance(html, str)
     assert "2DC" in html
-    assert "34,64" in html  # French number format
+    assert "50,00" in html  # French number format (comma decimal separator)
 
 
 def test_render_html_no_back_button_by_default():
